@@ -96,7 +96,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(pool.clone()))
             .app_data(web::Data::new(tera.unwrap()))
     })
-    .bind(("127.0.0.1", 9900))?
+    .bind(("0.0.0.0", 9900))?
     .run()
     .await
 }
