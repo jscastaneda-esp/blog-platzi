@@ -87,14 +87,16 @@ async fn main() -> std::io::Result<()> {
     println!("Starting server in port {}", port);
     HttpServer::new(move || {
         let database_url = env::var("DATABASE_URL").expect("DB Url config not found");
+        println!("DATABASE_URL = {}", database_url);
         let manager = ConnectionManager::<PgConnection>::new(database_url);
+        println!("Create connection manager");
         let pool = Pool::builder()
             .build(manager)
             .expect("Error get pool connections database");
+        println!("Create pool");
         let tera = Tera::new("templates/**/*");
 
         println!("Listening server");
-
         App::new()
             .wrap(Logger::default())
             .service(index)
