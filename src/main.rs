@@ -88,8 +88,12 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         let database_url = env::var("DATABASE_URL").expect("DB Url config not found");
         println!("DATABASE_URL = {}", database_url);
-        let manager = ConnectionManager::<PgConnection>::new(database_url);
+        let manager = ConnectionManager::<PgConnection>::new(database_url.clone());
         println!("Create connection manager");
+
+        PgConnection::establish(&database_url).expect("Error");
+        println!("Establish connection manual");
+
         let pool = Pool::builder()
             .build(manager)
             .expect("Error get pool connections database");
