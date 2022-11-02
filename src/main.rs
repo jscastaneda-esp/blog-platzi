@@ -83,31 +83,27 @@ async fn main() -> std::io::Result<()> {
     dotenv().ok();
 
     let port = env::var("PORT").expect("Port variable not found");
+    let database_url = env::var("DATABASE_URL").expect("DB Url config not found");
+    println!("DATABASE_URL = {}", database_url);
+    let manager = ConnectionManager::<PgConnection>::new(database_url.clone());
+    println!("Create connection manager");
+
+    let pool = Pool::builder()
+        .build(manager)
+        .expect("Error get pool connections database");
+    println!("Create pool");
+    let tera = Tera::new("templates/**/*").expect("Error config Tera");
 
     println!("Starting server in port {}", port);
     HttpServer::new(move || {
-        let database_url = env::var("DATABASE_URL").expect("DB Url config not found");
-        println!("DATABASE_URL = {}", database_url);
-        // let manager = ConnectionManager::<PgConnection>::new(database_url.clone());
-        // println!("Create connection manager");
-
-        // PgConnection::establish(&database_url).expect("Error");
-        // println!("Establish connection manual");
-
-        // let pool = Pool::builder()
-        //     .build(manager)
-        //     .expect("Error get pool connections database");
-        // println!("Create pool");
-        let tera = Tera::new("templates/**/*");
-
-        println!("Listening server");
+        println!("Start thread");
         App::new()
             .wrap(Logger::default())
             .service(index)
             .service(new_post)
             .service(get_post)
-            // .app_data(web::Data::new(pool.clone()))
-            .app_data(web::Data::new(tera.unwrap()))
+            .app_data(web::Data::new(pool.clone()))
+            .app_data(web::Data::new(tera.clone()))
     })
     .bind(("0.0.0.0", port.parse().unwrap()))?
     .run()
