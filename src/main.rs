@@ -1,7 +1,7 @@
 mod models;
 mod schema;
 
-use actix_web::{error::ErrorInternalServerError, HttpResponse};
+use actix_web::{error::ErrorInternalServerError, middleware::Logger, HttpResponse};
 use actix_web::{get, post, web, App, HttpServer, Responder, Result};
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
@@ -76,6 +76,8 @@ async fn new_post(
     }
 }
 
+// env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
@@ -86,10 +88,12 @@ async fn main() -> std::io::Result<()> {
         .build(connection)
         .expect("Error get pool connections database");
 
+    println!("Run listening in port 8000");
     HttpServer::new(move || {
         let tera = Tera::new("templates/**/*");
 
         App::new()
+            .wrap(Logger::default())
             .service(index)
             .service(new_post)
             .service(get_post)
