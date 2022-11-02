@@ -91,10 +91,13 @@ async fn main() -> std::io::Result<()> {
         let manager = ConnectionManager::<PgConnection>::new(database_url.clone());
         println!("Create connection manager");
 
-        PgConnection::establish(&database_url).expect("Error");
-        println!("Establish connection manual");
+        // PgConnection::establish(&database_url).expect("Error");
+        // println!("Establish connection manual");
+
+        use std::time::Duration;
 
         let pool = Pool::builder()
+            .connection_timeout(Duration::new(1, 0))
             .build(manager)
             .expect("Error get pool connections database");
         println!("Create pool");
