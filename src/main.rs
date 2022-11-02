@@ -82,15 +82,18 @@ async fn new_post(
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
 
-    let database_url = env::var("DATABASE_URL").expect("DB Url config not found");
-    let connection = ConnectionManager::<PgConnection>::new(database_url);
-    let pool = Pool::builder()
-        .build(connection)
-        .expect("Error get pool connections database");
+    let port = env::var("PORT").expect("Port variable not found");
 
-    println!("Run listening in port 8000");
+    println!("Starting server in port {}", port);
     HttpServer::new(move || {
+        let database_url = env::var("DATABASE_URL").expect("DB Url config not found");
+        let manager = ConnectionManager::<PgConnection>::new(database_url);
+        let pool = Pool::builder()
+            .build(manager)
+            .expect("Error get pool connections database");
         let tera = Tera::new("templates/**/*");
+
+        println!("Listening server");
 
         App::new()
             .wrap(Logger::default())
@@ -100,7 +103,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(pool.clone()))
             .app_data(web::Data::new(tera.unwrap()))
     })
-    .bind(("0.0.0.0", 8000))?
+    .bind(("0.0.0.0", port.parse().unwrap()))?
     .run()
     .await
 }
